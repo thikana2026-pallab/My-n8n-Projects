@@ -1,0 +1,206 @@
+Json file for Data Transformation-n8n
+
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d277fe35-8b15-4d16-8e61-14c87acb1645",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // ১. Full Name থেকে শুধু First Name নেওয়া\n  if (item.json['Full Name']) {\n    item.json['First Name'] = item.json['Full Name'].toString().trim().split(' ')[0];\n  }\n\n  // ২. Phone No ফরম্যাট করা (সব চিহ্ন বাদ দিয়ে শেষ ১১ ডিজিট বের করা এবং সামনে 0 ধরে রাখার জন্য ' যোগ করা)\n  if (item.json['Phone No']) {\n    let rawPhone = item.json['Phone No'].toString().replace(/\\D/g, '');\n    let cleanPhone = rawPhone.slice(-11);\n    \n    // যদি নম্বরটি ১০ ডিজিটের হয় (যেমন: 1812345678), তবে সামনে 0 যুক্ত করবে\n    if (cleanPhone.length === 10) {\n      cleanPhone = '0' + cleanPhone;\n    }\n    \n    // Google Sheets-এ zero ধরে রাখার জন্য\n    item.json['Phone No'] = `'${cleanPhone}`;\n  }\n\n  // ৩. Email ডোমেন ঠিক করা (gamil, gmil, htmail, yhoo, outlok ইত্যাদিকে অটো-কারেক্ট করবে)\n  if (item.json['Email']) {\n    const parts = item.json['Email'].toString().split('@');\n    const username = parts[0].trim();\n    let domain = parts[1] ? parts[1].toLowerCase().trim() : '';\n\n    if (domain.includes('g') || domain.includes('gmail')) {\n      domain = 'gmail.com';\n    } else if (domain.includes('yh') || domain.includes('yahoo')) {\n      domain = 'yahoo.com';\n    } else if (domain.includes('htm') || domain.includes('hot')) {\n      domain = 'hotmail.com';\n    } else if (domain.includes('out') || domain.includes('lok')) {\n      domain = 'outlook.com';\n    }\n\n    item.json['Email'] = `${username}@${domain}`;\n  }\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c144d27b-a218-4600-9f38-66597ddc2cb3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "Data Transformation \nUsing n8n ",
+        "height": 304,
+        "width": 1040
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        -96
+      ],
+      "typeVersion": 1,
+      "id": "5ee6f99d-3b9d-46b0-b08f-42a9619707da",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "163jIsC4m4gVEoMFr4mXQdr02Rjq5WY6FN6fJG33w0ls",
+          "mode": "list",
+          "cachedResultName": "Data for transformation practice ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/163jIsC4m4gVEoMFr4mXQdr02Rjq5WY6FN6fJG33w0ls/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Raw Data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/163jIsC4m4gVEoMFr4mXQdr02Rjq5WY6FN6fJG33w0ls/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "3f30c2fe-9ade-4af6-93cb-7976ca6b5372",
+      "name": "Incorrect Raw Data",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mqAzrfUoBcPRyqTp",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "163jIsC4m4gVEoMFr4mXQdr02Rjq5WY6FN6fJG33w0ls",
+          "mode": "list",
+          "cachedResultName": "Data for transformation practice ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/163jIsC4m4gVEoMFr4mXQdr02Rjq5WY6FN6fJG33w0ls/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1795126027,
+          "mode": "list",
+          "cachedResultName": "Data after transformation ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/163jIsC4m4gVEoMFr4mXQdr02Rjq5WY6FN6fJG33w0ls/edit#gid=1795126027"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "SL No": "={{ $json['SL No'] }}",
+            "First Name": "={{ $json['First Name'] }}",
+            "Corrected \nPhone No": "={{ $json['Phone No'] }}",
+            "Corrected \nEmail": "={{ $json.Email }}"
+          },
+          "matchingColumns": [
+            "SL No"
+          ],
+          "schema": [
+            {
+              "id": "SL No",
+              "displayName": "SL No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "First Name",
+              "displayName": "First Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Corrected \nPhone No",
+              "displayName": "Corrected \nPhone No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Corrected \nEmail",
+              "displayName": "Corrected \nEmail",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "2e3cda04-b8a8-4a61-9bf6-9bff2323c3d3",
+      "name": "Updated Data after transformation",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mqAzrfUoBcPRyqTp",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Incorrect Raw Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Updated Data after transformation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incorrect Raw Data": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f51955c1e7252d848aff60eda76e567459d62c941f2d071a207c1cc004cf1d2"
+  }
+}
