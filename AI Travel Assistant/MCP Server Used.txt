@@ -1,0 +1,13 @@
+MCP Server Used 
+
+Weather tool: Url: https://api.open-meteo.com/v1/forecast
+
+Currency_Exchange_Tool: Url: https://open.er-api.com/v6/latest/{{ $fromAI('from_currency', 'Base currency, e.g. USD', 'string') }}
+
+Hotel_Search_Tool: Url: https://maps.mail.ru/osm/tools/overpass/api/interpreter
+
+Attractions_Tool: Url: https://maps.mail.ru/osm/tools/overpass/api/interpreter
+
+Restaurent: Url: https://maps.mail.ru/osm/tools/overpass/api/interpreter.
+
+Transportation_Tool: Url: https://maps.mail.ru/osm/tools/overpass/api/interpreter

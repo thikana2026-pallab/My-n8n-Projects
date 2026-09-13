@@ -1,0 +1,352 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "options": {
+          "inputPlaceholder": "e.g. Plan a 3-day trip to Cox's Bazar",
+          "subtitle": "Tell me where you'd like to go!",
+          "title": "AI Travel Assistant",
+          "responseMode": "streaming"
+        }
+      },
+      "id": "1c58cbb6-db05-40d9-a8d2-5da52b47b209",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -1024,
+        0
+      ],
+      "webhookId": "d1d578b2-f8f9-4cf7-a315-b3e77cf047a2"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "travel_preferences",
+        "columns": {
+          "column": [
+            {
+              "name": "session_id"
+            },
+            {
+              "name": "budget"
+            },
+            {
+              "name": "hotel_type"
+            },
+            {
+              "name": "transportation"
+            },
+            {
+              "name": "dietary"
+            },
+            {
+              "name": "activities"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "id": "7b305fda-79ac-494c-b0fd-391a197bf647",
+      "name": "Ensure Preferences Table",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -800,
+        0
+      ],
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Chat Trigger').item.json.chatInput }}",
+        "options": {
+          "systemMessage": "You are an AI Travel Assistant. You help users plan trips by using tools to get real, current information instead of guessing.\n\nAvailable tools:\n- Weather_Tool, Currency_Exchange_Tool, Hotel_Search_Tool, Attractions_Tool, Restaurant_Search_Tool, Transportation_Tool (via Travel MCP Tools) - use these for any real-time or location-based facts. Location tools need latitude/longitude - infer them yourself from the destination name using your own knowledge.\n- Get_Travel_Preferences - call this first, at the start of the conversation, to check if this user has saved preferences (budget, hotel type, transportation, dietary needs, activities).\n- Save_Travel_Preferences - call this whenever the user states or updates a preference, so it is remembered for future trips.\n\nWhen planning a trip:\n1. Check saved preferences.\n2. Gather weather, hotels, attractions, restaurants, transportation, and currency info as relevant to the request.\n3. Combine everything into a clear, personalized recommendation: dates, weather, hotel suggestions, places to visit, restaurant suggestions, transportation notes, packing tips, and other useful travel tips.\n4. Prioritize the user's saved preferences (budget level, hotel type, transport mode, dietary needs, activity style) in your recommendation without being asked again.\n\nBe concise, friendly, and practical.\n\nALWAYS call the appropriate tool from Travel MCP Tools to fetch real-time data for weather, exchange rates, hotels, attractions, dining, or transportation. Do NOT rely on your pre-trained memory for live data. Always fetch data using the tools first, then format the recommendation.\n\nCall the tools one by one sequentially, not all at once, to avoid request timeouts\n"
+        }
+      },
+      "id": "937830be-5491-4ac3-ae45-0ee5e5e4881a",
+      "name": "AI Travel Assistant",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -384,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "id": "5f2cd896-654d-406c-a388-467e64fb4591",
+      "name": "Conversation Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        -440,
+        232
+      ]
+    },
+    {
+      "parameters": {
+        "endpointUrl": "https://ichheghuri5.app.n8n.cloud/mcp/travel-assistant",
+        "options": {}
+      },
+      "id": "2271a34f-0198-4420-a305-f13f6f6be619",
+      "name": "Travel MCP Tools",
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.4,
+      "position": [
+        -312,
+        232
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "travel_preferences"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "keyValue": "={{ $('Chat Trigger').item.json.sessionId }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $('Chat Trigger').item.json.sessionId }}",
+            "budget": "={{ $fromAI('budget', 'Preferred budget: Budget, Mid-range, or Luxury', 'string') }}",
+            "hotel_type": "={{ $fromAI('hotel_type', 'Favorite hotel type: Hotel, Resort, Hostel, or Guesthouse', 'string') }}",
+            "transportation": "={{ $fromAI('transportation', 'Preferred transportation: Bus, Train, Car, or Flight', 'string') }}",
+            "dietary": "={{ $fromAI('dietary', 'Dietary preference: Vegetarian, Halal, or Other', 'string') }}",
+            "activities": "={{ $fromAI('activities', 'Preferred activities: Adventure, Relaxation, Sightseeing, Nature, or Shopping', 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "hotel_type",
+              "displayName": "hotel_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "transportation",
+              "displayName": "transportation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "dietary",
+              "displayName": "dietary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "activities",
+              "displayName": "activities",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "c8133b97-a4bd-4959-b917-17a96b2587f8",
+      "name": "Save_Travel_Preferences",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        -184,
+        232
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "travel_preferences"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "keyValue": "={{ $('Chat Trigger').item.json.sessionId }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "id": "109204fb-7ee1-40f1-aa26-3bb3ce6ed9a9",
+      "name": "Get_Travel_Preferences",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        -56,
+        232
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -568,
+        232
+      ],
+      "id": "aa782f64-64d7-47af-8f7a-9efac5e6e747",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "cpQmOpbXnHTn1owi",
+          "name": "Google Gemini(PaLM) Api account-ostad"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Ensure Preferences Table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ensure Preferences Table": {
+      "main": [
+        [
+          {
+            "node": "AI Travel Assistant",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Travel Assistant": {
+      "main": [
+        []
+      ]
+    },
+    "Conversation Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Travel Assistant",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Travel MCP Tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Travel Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save_Travel_Preferences": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Travel Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Travel_Preferences": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Travel Assistant",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Travel Assistant",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "templateCredsSetupCompleted": true,
+    "instanceId": "18710e49aad4ea05dc520547722c21ec058c1db44fdd9172992fe7aa52cbe973"
+  }
+}

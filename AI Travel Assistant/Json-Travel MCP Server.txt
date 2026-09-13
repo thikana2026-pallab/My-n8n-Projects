@@ -1,0 +1,250 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "travel-assistant",
+        "instructions": "=This MCP server exposes real-time travel data tools: weather forecast, hotel search, tourist attractions, restaurant search, transportation, and currency exchange. Each location-based tool requires latitude and longitude of the destination."
+      },
+      "id": "eea8c5f6-7646-433a-947c-17632a6ee575",
+      "name": "Travel MCP Server",
+      "type": "@n8n/n8n-nodes-langchain.mcpTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        -144
+      ],
+      "webhookId": "8dc25dae-be55-4073-a6da-e3b2c44c8fd7"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Gets current weather and a short-term daily forecast (max/min temperature, precipitation) for a destination. Requires latitude and longitude.",
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "latitude",
+              "value": "={{ $fromAI('latitude', 'Latitude of the destination', 'number') }}"
+            },
+            {
+              "name": "longitude",
+              "value": "={{ $fromAI('longitude', 'Longitude of the destination', 'number') }}"
+            },
+            {
+              "name": "current_weather",
+              "value": "true"
+            },
+            {
+              "name": "daily",
+              "value": "temperature_2m_max,temperature_2m_min,precipitation_sum"
+            },
+            {
+              "name": "timezone",
+              "value": "auto"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d10bc409-6ee2-42a7-95e5-211010264927",
+      "name": "Weather_Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        -880,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Converts an amount between two currencies using live exchange rates. Provide 3-letter currency codes, e.g. USD, BDT, EUR.\nALWAYS use this tool whenever the user asks for currency exchange rates, conversion, or money values between any currencies.",
+        "url": "=https://open.er-api.com/v6/latest/{{ $fromAI('from_currency', 'Base currency, e.g. USD', 'string') }}",
+        "options": {}
+      },
+      "id": "4cb5e3e5-2bdf-4e7d-a305-c743910480b0",
+      "name": "Currency_Exchange_Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        -704,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Finds hotels, resorts, guesthouses and hostels near a destination using OpenStreetMap data. Requires latitude and longitude.",
+        "method": "POST",
+        "url": "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "={{ '[out:json][timeout:25];node(around:2000,' + $fromAI('latitude','Latitude of destination','number') + ',' + $fromAI('longitude','Longitude of destination','number') + ')[\"tourism\"~\"hotel|guest_house|hostel\"];out body 10;' }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "d87b6022-412b-4c12-8d0f-c38f7b330c84",
+      "name": "Hotel_Search_Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        -496,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Finds tourist attractions, museums and viewpoints near a destination using OpenStreetMap data. Requires latitude and longitude.",
+        "method": "POST",
+        "url": "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "={{ '[out:json][timeout:25];node(around:5000,' + $fromAI('latitude','Latitude of destination','number') + ',' + $fromAI('longitude','Longitude of destination','number') + ')[\"tourism\"~\"attraction|museum|viewpoint\"];out body 20;' }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "44c43586-e212-42a4-aab3-90995945225a",
+      "name": "Attractions_Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        -288,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Finds restaurants near a destination using OpenStreetMap data. Requires latitude and longitude.",
+        "method": "POST",
+        "url": "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "={{ '[out:json][timeout:25];node(around:3000,' + $fromAI('latitude','Latitude of destination','number') + ',' + $fromAI('longitude','Longitude of destination','number') + ')[\"amenity\"=\"restaurant\"];out body 10;' }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "0b6e1bfb-33a1-431e-976d-c1fa3828b9a1",
+      "name": "Restaurant_Search_Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        -96,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Finds nearby bus stations and transport hubs near a destination using OpenStreetMap data. Requires latitude and longitude.",
+        "method": "POST",
+        "url": "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "text/plain",
+        "body": "={{ '[out:json][timeout:25];node(around:4000,' + $fromAI('latitude','Latitude of destination','number') + ',' + $fromAI('longitude','Longitude of destination','number') + ')[\"amenity\"~\"bus_station\"];out body 10;' }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "e26ec436-7b90-43f1-9add-abefcd665b30",
+      "name": "Transportation_Tool",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.5,
+      "position": [
+        192,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "content": "TRAVEL MCP SERVER",
+        "height": 80
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -912,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "40177c7f-bac2-4fcd-978a-b7ef8db50fe9",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "Weather_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Travel MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Currency_Exchange_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Travel MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hotel_Search_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Travel MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Attractions_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Travel MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restaurant_Search_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Travel MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transportation_Tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Travel MCP Server",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "18710e49aad4ea05dc520547722c21ec058c1db44fdd9172992fe7aa52cbe973"
+  }
+}
