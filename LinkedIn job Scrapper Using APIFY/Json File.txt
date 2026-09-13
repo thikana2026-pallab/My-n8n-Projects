@@ -1,0 +1,238 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/actors/crawlworks~linkedin-jobs-scraper/runs?token=apify_api_7HQwmBlJe1XAwpEdxeDKACLpHCHmAg1IfwTL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \n     \"query\": \"{{ $json.query.jobTitle }}\",\n    \"location\": \"{{ $json.query.location }}\",\n    \"jobsToFetch\": {{ $json.query.limit }}\n   \n\n    \n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        144,
+        16
+      ],
+      "id": "994244fb-f8f8-4c0d-8a5f-d7ed8b6621aa",
+      "name": "HTTP Request-APIFY Linkedin Job Scrapper Actor Run",
+      "alwaysOutputData": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        16
+      ],
+      "id": "5d4022b4-2975-4b67-8924-a415b7a45252",
+      "name": "Wait 30 Sec",
+      "webhookId": "2828da20-46ff-4575-ac92-2e8b621eed22"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actors/crawlworks~linkedin-jobs-scraper/runs/last/dataset/items?token=apify_api_7HQwmBlJe1XAwpEdxeDKACLpHCHmAg1IfwTL",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        592,
+        16
+      ],
+      "id": "9c4ac5ec-0a9b-45d6-b9e1-204dd5f74cbc",
+      "name": "HTTP Request-Apify Last Run dataset"
+    },
+    {
+      "parameters": {
+        "path": "job-alert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "2866957e-9959-48ad-b928-479af056732d",
+      "name": "Webhook Query Input from Website",
+      "webhookId": "709da338-bf99-46c6-9cf8-3c40d3372c14"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "12dOsN9Rb2UOLj2DPyZjGN4EVtpoXSkpRv1jl7tjgRGY",
+          "mode": "list",
+          "cachedResultName": "LinkedIn Job List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12dOsN9Rb2UOLj2DPyZjGN4EVtpoXSkpRv1jl7tjgRGY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1098595176,
+          "mode": "list",
+          "cachedResultName": "LinkedIn Job",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12dOsN9Rb2UOLj2DPyZjGN4EVtpoXSkpRv1jl7tjgRGY/edit#gid=1098595176"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Job Title": "={{ $json.jobTitle }}",
+            "* Company Name": "={{ $json.companyName }}",
+            "* Company URL (if available)": "={{ $json.companyUrl }}",
+            "* Location": "={{ $json.location }}",
+            "* Posted Time": "={{ $json.postedDate }}, {{ $json.postedTime }}",
+            "* Job URL": "={{ $json.jobUrl }}"
+          },
+          "matchingColumns": [
+            "* Job URL"
+          ],
+          "schema": [
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "* Company Name",
+              "displayName": "* Company Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "* Location",
+              "displayName": "* Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "* Posted Time",
+              "displayName": "* Posted Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "* Job URL",
+              "displayName": "* Job URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "* Company URL (if available)",
+              "displayName": "* Company URL (if available)",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        816,
+        16
+      ],
+      "id": "a97fdbbb-6fbc-4bbf-aee3-9ca7958829fd",
+      "name": "Append or update row in sheet-Output List",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "zIA8htU8gBEuLOFy",
+          "name": "Get service info"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "A4/M6:Build a LinkedIn Job Alert Automation with n8n\nInput from:\nhttps://linkedinjoblist.lovable.app/ \nOutput:\nGoogle Sheet",
+        "width": 432
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -176
+      ],
+      "typeVersion": 1,
+      "id": "70f18640-b03e-41d8-877a-6b9794316235",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "HTTP Request-APIFY Linkedin Job Scrapper Actor Run": {
+      "main": [
+        [
+          {
+            "node": "Wait 30 Sec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30 Sec": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request-Apify Last Run dataset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request-Apify Last Run dataset": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet-Output List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook Query Input from Website": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request-APIFY Linkedin Job Scrapper Actor Run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "20cf75cd0417fe5be3c3d8dcf7163bcd4dd5f0947193527bf3d55f850ac76577"
+  }
+}

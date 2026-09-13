@@ -1,0 +1,11 @@
+Here is the short brief of how you built the project and integrated it with Apify to fetch the data:
+
+Frontend & Webhook Trigger: You created a clean, mobile-responsive frontend page using Lovable with input fields for Job Title, Location, and Search Limit. When submitted, it sends a POST request to your n8n webhook URL ([https://vibeacademy.cloud/webhook/job-alert](https://vibeacademy.cloud/webhook/job-alert)).
+
+Triggering Apify: The webhook acts as the entry point in your n8n workflow, passing the user's input to the HTTP Request - APIFY LinkedIn Job Scraper Actor Run node to execute the LinkedIn scraping task on Apify.
+
+Waiting Period: A Wait 30 Sec node pauses the workflow briefly to give the Apify scraper enough time to successfully gather the job listings.
+
+Fetching the Results: Once the wait time is over, another HTTP Request - Apify Last Run dataset node fetches the scraped job data from Apify's dataset output.
+
+Storing in Google Sheets: Finally, the Append or update row in sheet node automatically saves all the scraped job listings into your designated Google Sheet, which the user can easily access from the frontend interface.
